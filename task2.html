@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Real-Time Stock Tracker</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+    }
+    nav {
+      position: fixed;
+      width: 100%;
+      background-color: #333;
+      padding: 1em;
+      color: white;
+      display: flex;
+      justify-content: space-between;
+      z-index: 1000;
+    }
+    nav a {
+      color: white;
+      margin: 0 1em;
+      text-decoration: none;
+    }
+    section {
+      padding: 100px 20px 40px;
+      min-height: 100vh;
+    }
+    .stock {
+      border: 1px solid #ccc;
+      padding: 1em;
+      margin: 1em 0;
+      border-radius: 5px;
+    }
+    #watchlist input {
+      padding: 0.5em;
+      width: 200px;
+    }
+    #watchlist button {
+      padding: 0.5em;
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <div>Stock Tracker</div>
+    <div>
+      <a href="#stocks">Stocks</a>
+      <a href="#watchlist">Watchlist</a>
+    </div>
+  </nav>
+
+  <section id="stocks">
+    <h2>Live Stock Prices</h2>
+    <div id="stock-container"></div>
+  </section>
+
+  <section id="watchlist">
+    <h2>My Watchlist</h2>
+    <input type="text" id="stockInput" placeholder="Enter Stock Symbol (e.g., AAPL)" />
+    <button onclick="addToWatchlist()">Add</button>
+    <div id="watchlist-container"></div>
+  </section>
+
+  <script>
+    const API_KEY = 'd0u5ne9r01qn5fk3b11gd0u5ne9r01qn5fk3b120';
+    const STOCKS = ['AAPL', 'GOOGL', 'MSFT'];
+
+    async function fetchStock(symbol) {
+      const res = await fetch(`https://finnhub.io/api/v1/quote?symbol=${symbol}&token=${API_KEY}`);
+      const data = await res.json();
+      return {
+        symbol,
+        price: data.c,
+        change: data.d
+      };
+    }
+
+    async function updateStockContainer() {
+      const container = document.getElementById('stock-container');
+      container.innerHTML = '';
+      for (const symbol of STOCKS) {
+        const stock = await fetchStock(symbol);
+        const div = document.createElement('div');
+        div.className = 'stock';
+        div.innerHTML = `<strong>${stock.symbol}</strong><br/>Price: $${stock.price.toFixed(2)}<br/>Change: <span style="color:${stock.change >= 0 ? 'green' : 'red'}">${stock.change.toFixed(2)}</span>`;
+        container.appendChild(div);
+      }
+    }
+
+    function addToWatchlist() {
+      const input = document.getElementById('stockInput');
+      const symbol = input.value.trim().toUpperCase();
+      if (symbol && !STOCKS.includes(symbol)) {
+        STOCKS.push(symbol);
+        updateStockContainer();
+        input.value = '';
+      }
+    }
+
+    updateStockContainer();
+    setInterval(updateStockContainer, 60000);
+  </script>
+</body>
+</html>
